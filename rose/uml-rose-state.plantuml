@@ -1,0 +1,75 @@
+@startuml
+
+title ROSE Affective State Dynamics
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+
+skinparam state {
+    BackgroundColor #F7F7F7
+    BorderColor #303030
+    ArrowColor #202020
+}
+
+[*] --> AtBaseMood : ROBOT_AFFECTIVE_PROFILE received\ninitialize state = base mood
+
+state "At Base Mood" as AtBaseMood {
+    AtBaseMood : s_r = b
+}
+
+state "Holding Transformed\nAffective State" as Holding {
+    Holding : s_r = s'_r
+}
+
+state "Returning to\nBase Mood" as Returning {
+    Returning : s_r -> b
+}
+
+' ============================================================
+' USER AFFECTIVE STATE EVENTS
+' ============================================================
+
+AtBaseMood --> Holding : USER_AFFECTIVE_STATE\n/ apply Empathic Transformation\n/ start decay delay
+
+Holding --> Holding : USER_AFFECTIVE_STATE\n/ apply Empathic Transformation\n/ update s'_r\n/ restart decay delay
+
+Returning --> Holding : USER_AFFECTIVE_STATE\n/ apply Empathic Transformation\n/ update s'_r\n/ restart decay delay
+
+' ============================================================
+' TEMPORAL DYNAMICS
+' ============================================================
+
+Holding --> Returning : decay delay elapsed\n/ enable Emotional Decay
+
+Returning --> AtBaseMood : base mood reached
+
+' ============================================================
+' NOTES
+' ============================================================
+
+note right of Holding
+The transformed affective state
+is maintained during the
+decay delay (l).
+
+Emotional Decay is inhibited
+during this interval.
+end note
+
+note right of Returning
+Emotional Decay iteratively
+updates s_r toward b.
+
+Each intermediate state is
+published as ROBOT_AFFECTIVE_STATE.
+end note
+
+note bottom of AtBaseMood
+b represents the robot
+base mood and affective
+equilibrium point.
+end note
+
+@enduml

@@ -1,6 +1,6 @@
 @startuml
 
-title Extensible Confidence and Fusion Methods in PULSE
+title Extensible Processing Methods in PULSE
 
 left to right direction
 
@@ -23,10 +23,11 @@ skinparam note {
 
 class Pulse {
     - confidence_method : ConfidenceMethod
+    - cat_to_vad_method : CatToVadMethod
     - fusion_method : FusionMethod
     - affective_observations : List
 
-    + Pulse(confidence_method,\n  fusion_method)
+    + Pulse(confidence_method,\n  cat_to_vad_method,\n  fusion_method)
     + process_observations()
 }
 
@@ -34,38 +35,38 @@ abstract class ConfidenceMethod <<Strategy>> {
     + estimate(observations) : List
 }
 
-class EntropyConfidenceMethod {
+class EntropyConfidenceMethod <<Provided Implementation>> {
     + estimate(observations) : List
 }
 
-class "Alternative\nConfidenceMethod" as AlternativeConfidence {
-    + estimate(observations) : List
+abstract class CatToVadMethod <<Strategy>> {
+    + convert(observations) : List
+}
+
+class ReferenceBasedCatToVadMethod <<Provided Implementation>> {
+    - VAD_REFERENCE : Map
+    + convert(observations) : List
 }
 
 abstract class FusionMethod <<Strategy>> {
     + fuse(observations) : VADState
 }
 
-class WeightedFusionMethod {
-    + fuse(observations) : VADState
-}
-
-class "Alternative\nFusionMethod" as AlternativeFusion {
+class WeightedFusionMethod <<Provided Implementation>> {
     + fuse(observations) : VADState
 }
 
 ConfidenceMethod <|-- EntropyConfidenceMethod
-ConfidenceMethod <|-- AlternativeConfidence
-
+CatToVadMethod <|-- ReferenceBasedCatToVadMethod
 FusionMethod <|-- WeightedFusionMethod
-FusionMethod <|-- AlternativeFusion
 
-Pulse o--> ConfidenceMethod : stores injected\nmethod
-Pulse o--> FusionMethod : stores injected\nmethod
+Pulse --> ConfidenceMethod : injected method
+Pulse --> CatToVadMethod : injected method
+Pulse --> FusionMethod : injected method
 
 note top of Pulse
-The concrete methods are supplied
-through the constructor.
+The concrete processing methods
+are supplied through the constructor.
 
 Pulse depends only on the
 abstract method contracts.
@@ -73,19 +74,37 @@ end note
 
 note bottom of ConfidenceMethod
 Extension point for confidence
-estimation approaches.
+estimation methods.
+end note
+
+note bottom of CatToVadMethod
+Extension point for CAT-to-VAD
+conversion methods.
+
+The conversion is applied only
+to CAT observations.
 end note
 
 note bottom of FusionMethod
 Extension point for multimodal
-fusion approaches.
+fusion methods.
+end note
+
+note bottom
+Additional implementations may inherit
+from ConfidenceMethod, CatToVadMethod,
+or FusionMethod without modifying Pulse.
 end note
 
 legend bottom
   <|--  Generalization: inheritance
-  o-->  Aggregation: stores an externally supplied object
+  -->   Association: stores or uses an injected object
 
-  <<Strategy>>  Interchangeable processing method
+  <<Strategy>>
+  Abstract interchangeable processing contract
+
+  <<Provided Implementation>>
+  Concrete implementation included in the framework
 endlegend
 
 @enduml

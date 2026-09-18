@@ -1,0 +1,66 @@
+@startuml
+
+title ROSE Extensible Affective Dynamics
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+
+skinparam class {
+    BackgroundColor #F7F7F7
+    BorderColor #303030
+    ArrowColor #202020
+}
+
+class ROSE {
+    - userAffectiveState
+    - robotAffectiveState
+    - baseMood
+    - empathy
+    - decay
+    - decayDelay
+
+    - empathicTransformationMethod : EmpathicTransformationMethod
+    - emotionalDecayMethod : EmotionalDecayMethod
+
+    + ROSE(empathicTransformationMethod : EmpathicTransformationMethod, emotionalDecayMethod : EmotionalDecayMethod)
+    + processUserAffectiveState()
+    + updateAffectiveState()
+    + publishRobotAffectiveState()
+}
+
+abstract class EmpathicTransformationMethod {
+    {abstract} + transform(userState, robotState, parameters)
+}
+
+abstract class EmotionalDecayMethod {
+    {abstract} + update(robotState, baseMood, parameters)
+}
+
+ROSE --> EmpathicTransformationMethod : uses
+ROSE --> EmotionalDecayMethod : uses
+
+note right of EmpathicTransformationMethod
+Extension point for computing
+the transformed robot affective state.
+
+s'_r = f_ET(s_u, s_r, theta_ET)
+end note
+
+note right of EmotionalDecayMethod
+Extension point for computing
+the next affective state
+toward the base mood.
+
+s_r(t + dt) =
+f_ED(s_r(t), b, theta_ED)
+end note
+
+note bottom of ROSE
+Affective State Update remains
+part of the ROSE core and controls
+the temporal affective dynamics.
+end note
+
+@enduml

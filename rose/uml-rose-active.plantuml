@@ -1,0 +1,52 @@
+@startuml
+
+title ROSE Continuous Affective State Update
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+
+start
+
+:Initialize robot affective state\nwith base mood;
+
+repeat
+
+    if (New USER_AFFECTIVE_STATE?) then (yes)
+
+        :Apply Empathic Transformation;
+
+        :Update and publish\nROBOT_AFFECTIVE_STATE;
+
+        :Start/restart decay delay;
+
+    else (no)
+
+        if (Decay delay active?) then (yes)
+
+            :Maintain current\nrobot affective state;
+
+        else (no)
+
+            if (Robot state differs\nfrom base mood?) then (yes)
+
+                :Apply Emotional Decay;
+
+                :Update and publish\nROBOT_AFFECTIVE_STATE;
+
+            else (no)
+
+                :Remain at base mood;
+
+            endif
+
+        endif
+
+    endif
+
+repeat while (ROSE running?) is (yes)
+
+stop
+
+@enduml

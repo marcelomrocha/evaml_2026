@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<evaml
+  name="SessionGrace_german" xsi:noNamespaceSchemaLocation="evamlschema/evaml_schema.xsd"
+  xsi:noNamespaceSchemaLocation="../robot_package/xml_schema/evaml_schema.xsd"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <settings>
+    <voice tone="German" key="1000" />
+    <lightEffects mode="ON" />
+    <audioEffects mode="ON" />
+  </settings>
+  <script>
+    <evaEmotion emotion="HAPPY" key="1001" />
+    <talk key="1002">Hallo! Wie heissen Sie?</talk>
+    <listen key="1003" />
+    <generate_answer instruction="Extract the name from the user
+      reply. Return only the name. For my name is John reply John if there
+      is no name, just return an empty string" context="" key="1004" />
+    <talk key="1005">Hallo $! Es ist schön, Sie kennenzulernen! Mein
+      Name ist Grace und ich bin Ihre Sprachassistentin.</talk>
+
+  </script>
+</evaml>

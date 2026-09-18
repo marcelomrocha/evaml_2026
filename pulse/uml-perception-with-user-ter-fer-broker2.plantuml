@@ -1,0 +1,79 @@
+@startuml
+
+title Perception Window Coordination
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+
+skinparam sequence {
+    ParticipantBackgroundColor #F7F7F7
+    ParticipantBorderColor #303030
+    ArrowColor #202020
+    MessageSpacing 10
+    ParticipantPadding 8
+}
+
+participant SENSEI
+queue "MQTT Broker" as Broker
+participant "FER Input" as FER
+participant "TER Input" as TER
+participant PULSE
+
+SENSEI -> Broker : PERCEPTION START\nsources=[FER, TER]
+
+par
+    Broker -> FER : START
+else
+    Broker -> TER : START
+else
+    Broker -> PULSE : START [FER, TER]
+end
+
+PULSE -> PULSE : Register expected sources
+
+== Perception Window ==
+
+par FER
+    FER -> FER : Collect/process data
+else TER
+    TER -> TER : Collect/process data
+end
+
+== End Perception Window ==
+
+SENSEI -> Broker : PERCEPTION END
+
+par
+    Broker -> FER : END
+else
+    Broker -> TER : END
+end
+
+note over PULSE
+PULSE doesn't subscribe the END topic.
+It waits for the observations declared
+in the sources, in START message.
+end note
+
+par
+    FER -> Broker : CAT/VAD observation
+    Broker -> PULSE : FER observation
+else
+    TER -> Broker : CAT/VAD observation
+    Broker -> PULSE : TER observation
+end
+
+== PULSE - User Affective-State Estimation ==
+
+PULSE -> PULSE : Register received source
+
+alt Pending source(s)
+    PULSE -> PULSE : Wait for remaining source(s)
+
+else All expected sources received
+    PULSE -> PULSE : Confidence estimation\nCAT-to-VAD conversion\nMultimodal fusion
+end
+
+@enduml

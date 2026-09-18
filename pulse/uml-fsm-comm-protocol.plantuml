@@ -1,0 +1,79 @@
+@startuml
+
+title Multimodal Input Communication Protocol
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+
+skinparam state {
+    BackgroundColor #F7F7F7
+    BorderColor #303030
+    ArrowColor #202020
+}
+
+[*] --> Inactive : Subscribe to\n<ROBOT_BASE_TOPIC>/PERCEPTION
+
+state Inactive
+
+state Active {
+    Active : do / collect and process\nmodality-specific data
+}
+
+state Finalizing {
+    Finalizing : process collected data
+    Finalizing : produce final CAT or VAD observation
+    Finalizing : publish to\n<ROBOT_BASE_TOPIC>/PULSE/INPUT
+}
+
+' ============================================================
+' INACTIVE
+' ============================================================
+
+Inactive --> Active : START\n[source_id in sources]
+
+Inactive --> Inactive : START\n[source_id not in sources]
+
+Inactive --> Inactive : END
+
+' ============================================================
+' ACTIVE
+' ============================================================
+
+Active --> Active : START / ignore
+
+Active --> Finalizing : END
+
+' ============================================================
+' FINALIZATION
+' ============================================================
+
+Finalizing --> Inactive : publication completed
+
+note right of Inactive
+The module remains subscribed
+to PERCEPTION while inactive.
+end note
+
+note right of Active
+Data acquisition and processing
+continue while the module remains
+in this state.
+
+The sensing technology and
+processing procedure are
+implementation-specific.
+end note
+
+note right of Finalizing
+The collected data are processed
+using an implementation-specific
+procedure.
+
+Exactly one final CAT or VAD
+observation is published for
+the completed perception window.
+end note
+
+@enduml

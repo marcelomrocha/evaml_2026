@@ -1,0 +1,47 @@
+@startuml
+
+title AEB Extensibility
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+
+skinparam class {
+    BackgroundColor #F7F7F7
+    BorderColor #303030
+    ArrowColor #202020
+}
+
+class AEB {
+    - behaviorMappingMethod : EmpathicBehaviorMappingMethod
+    - mappingParameters : dict
+
+    + AEB(behaviorMappingMethod : EmpathicBehaviorMappingMethod, mappingParameters : dict)
+    + processRobotAffectiveState(robotAffectiveState : dict)
+    + publishBehaviorParameters(behaviorParameters : dict)
+}
+
+abstract class EmpathicBehaviorMappingMethod {
+    {abstract} + map(robotAffectiveState : dict, parameters : dict) : dict
+}
+
+AEB --> EmpathicBehaviorMappingMethod : uses
+
+note right of EmpathicBehaviorMappingMethod
+Extension point for mapping
+the robot affective state to
+structured empathic behavior
+parameters.
+
+p = f_EB(s_r, theta_EB)
+end note
+
+note bottom of AEB
+Receives the robot affective state,
+applies the configured mapping method,
+and publishes the resulting structured
+empathic behavior parameters.
+end note
+
+@enduml

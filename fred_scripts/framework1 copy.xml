@@ -7,24 +7,16 @@
     <voice type="en_US-bryce-medium" />
     <lightEffects mode="ON" />
     <audioEffects mode="ON" />
-    <robotAffectiveProfile profile="EMPATHETIC" />
+    <robotAffectiveProfile profile="OPTIMISTIC" />
   </settings>
   <script>
-    <wait duration="1" />
-    <!-- <useMacro macro="AEB_EXECUTE" />
-    <wait duration="1" />
-    <mqtt pubTopic="expression">speech_on_2</mqtt> -->
-    <talk>Hello Marcélo!</talk>
+    <talk>Hello Marcelo!</talk>
     <talk>How are you doing?</talk>
-    <mqtt pubTopic="expression">speech_off_2</mqtt>
     <perception action="START" sources="TER, FER"/>
     <listen />
-    <!-- Hello Fred, I'm tired because I worked so much. -->
     <mqtt pubTopic="TER_TEXT">$</mqtt>
     <perception action="END" />
-    <wait duration="1" />
     <useMacro macro="AEB_EXECUTE" />
-    <wait duration="1" />
     <switch var="aeb_affective_state">
       <case op="contain" value="sadness">
         <mqtt pubTopic="expression">speech_on_2</mqtt>
@@ -32,9 +24,7 @@
         <mqtt pubTopic="expression">speech_off_1</mqtt>
       </case>
       <case op="contain" value="happiness">
-        <mqtt pubTopic="expression">speech_on_2</mqtt>
-        <talk>Hey, come on! Don't be sad—let's move forward!</talk>
-        <mqtt pubTopic="expression">speech_off_1</mqtt>
+        <talk>Hey, come on! Don't be sad, let's move forward!</talk>
       </case>
     </switch>
     <wait duration="1" />

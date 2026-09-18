@@ -10,50 +10,68 @@ skinparam defaultFontSize 10
 skinparam sequence {
     ParticipantBackgroundColor #F7F7F7
     ParticipantBorderColor #303030
+    LifeLineBorderColor #505050
+    LifeLineBackgroundColor white
     ArrowColor #202020
+    GroupBackgroundColor #FAFAFA
+    GroupBorderColor #505050
     MessageSpacing 18
     ParticipantPadding 12
 }
 
 actor User
 participant SENSEI
+queue "MQTT\nBroker" as Broker
 participant "FER\nInput" as FER
 participant "TER\nInput" as TER
 participant PULSE
+participant "Shared State\nSync" as Sync
+database "Robot\nMemory" as Memory
 
 == Start perception window ==
 
-SENSEI -> FER : START
-SENSEI -> TER : START
-SENSEI -> PULSE : START [FER, TER]
+SENSEI -> Broker : PERCEPTION START\nsources: [FER, TER]
+
+par
+    Broker -> FER : START
+else
+    Broker -> TER : START
+else
+    Broker -> PULSE : START [FER, TER]
+end
 
 == Multimodal observation ==
 
 par FER
     loop Active window
         User -> FER : Facial expressions
-        FER -> FER : Collect observations
+        FER -> FER : Collect affective observations
     end
 
 else TER
     loop Active window
         User -> SENSEI : Speech
-        SENSEI -> TER : TER_TEXT
-        TER -> TER : Collect observations
+        SENSEI -> Broker : TER_TEXT
+        Broker -> TER : TER_TEXT
+        TER -> TER : Collect affective observations
     end
 end
 
 == End perception window ==
 
-SENSEI -> FER : END
-SENSEI -> TER : END
+SENSEI -> Broker : PERCEPTION END
 
 par
+    Broker -> FER : END
     FER -> FER : Aggregate observations
-    FER -> PULSE : FER observation
+    FER -> Broker : PULSE/INPUT\nFER observation
+    Broker -> PULSE : FER observation
+
 else
+    Broker -> TER : END
     TER -> TER : Aggregate observations
-    TER -> PULSE : TER observation
+    TER -> Broker : PULSE/INPUT\nTER observation
+    Broker -> PULSE : TER observation
 end
 
 == User affective-state estimation ==
@@ -62,13 +80,24 @@ PULSE -> PULSE : Estimate confidence
 PULSE -> PULSE : Convert CAT → VAD
 PULSE -> PULSE : Fuse observations
 
+== Shared-state update ==
+
+PULSE -> Broker : USER_AFFECTIVE_STATE
+Broker -> Sync : User affective-state update
+Sync -> Memory : Update user affective state
+
+== Script continuation ==
+
+SENSEI -> Memory : Read user affective state
+Memory --> SENSEI : Current VAD state
+
 note over FER,TER
 
-Each perception module collects
-modality-specific affective observations
-during the perception window and
-produces one aggregated observation
-when the window ends.
+Each affective input module collects
+modality-specific observations during
+the perception window and publishes
+one aggregated observation when the
+window ends.
 
 end note
 
@@ -76,7 +105,19 @@ note over PULSE
 
 PULSE starts processing only after
 receiving all observations declared
-in the START message.
+in the PERCEPTION START message.
+
+end note
+
+note over Sync,Memory
+
+Shared State Sync receives the state
+published by PULSE and updates the
+corresponding value in Robot Memory.
+
+SENSEI subsequently reads the current
+state from Robot Memory, avoiding a
+direct dependency on PULSE.
 
 end note
 
